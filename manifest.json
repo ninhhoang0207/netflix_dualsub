@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Dual Subtitle Overlayer",
+  "version": "1.0",
+  "content_scripts": [
+    {
+      "matches": ["*://*.netflix.com/*"],
+      "js": ["content.js"],
+      "css": ["style.css"]
+    }
+  ],
+  "host_permissions": [
+    "*://*.netflix.com/*",
+    "*://*.nflxvideo.net/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "webRequest",
+    "storage"
+  ]
+}

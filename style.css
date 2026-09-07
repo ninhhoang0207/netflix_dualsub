@@ -1,0 +1,235 @@
+#subtitle-container {
+    position: absolute;
+    padding: 10px;
+    color: #ffffff;
+    font-size: 20px;
+    text-align: center;
+    cursor: move;
+    
+    /* Tính năng Resize */
+    /* overflow: auto;  */
+    resize: both; /* Cho phép kéo rộng/cao từ góc dưới bên phải */
+    
+    /* Vị trí mặc định ban đầu */
+    bottom: 15%; 
+    left: 50%;
+    transform: translateX(-50%); /* Căn giữa theo chiều ngang */
+    line-height: 1.4;
+    overflow: visible !important;
+    z-index: 2147483647 !important;
+    height: fit-content; /* Fix bug Tự động điều chỉnh chiều cao theo nội dung */
+}
+
+#subtitle-container:active {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    border: 1px solid #333;
+}
+
+#sub-settings-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    opacity: 0.5;
+    transition: opacity 0.3s;
+}
+
+#sub-settings-btn:hover {
+    opacity: 1;
+}
+
+#lang-popup {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 10px); /* Đẩy lên trên khung sub 10px */
+    right: 0;
+    width: 200px;
+    background: #181818;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    /* z-index: 10000; */
+    z-index: 2147483647 !important; /* Đảm bảo cao hơn tất cả */
+    cursor: default !important; /* Khi rê chuột vào popup thì hiện mũi tên thay vì bàn tay kéo - cải thiện UX */ 
+}
+
+.lang-option {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 13px;
+    transition: background 0.2s;
+}
+
+.lang-option:hover {
+    background: #e50914; /* Màu đỏ Netflix */
+    color: white;
+}
+
+#lang-list {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+/* Tùy chỉnh thẻ select */
+#lang-select {
+    width: 100%;
+    background: #333;
+    color: white;
+    border: 1px solid #555;
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    outline: none;
+    cursor: pointer;
+}
+
+#lang-select option {
+    background: #181818;
+    color: white;
+}
+
+/* Nút áp dụng */
+#apply-lang-btn {
+    width: 100%;
+    background: #e50914; /* Màu đỏ Netflix */
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#apply-lang-btn:hover {
+    background: #b20710;
+}
+
+#lang-select, #apply-lang-btn {
+    cursor: pointer;
+}
+
+/* Nút Setting cố định trên Video */
+#netflix-sub-settings-btn {
+    position: absolute;
+    top: 20px;
+    right: 60px; /* Tránh đè lên nút đóng của Netflix */
+    z-index: 2147483647;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 24px;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    line-height: 1;
+    transition: transform 0.2s, background 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    user-select: none;
+}
+
+#netflix-sub-settings-btn:hover {
+    background: rgba(229, 9, 20, 0.8); /* Màu đỏ Netflix */
+    transform: scale(1.1);
+}
+
+/* Điều chỉnh lại Popup để đi theo nút cố định này */
+/* Container chính của Popup */
+#lang-popup {
+    display: none;
+    position: absolute;
+    top: 70px;
+    right: 60px;
+    min-width: 250px;
+    z-index: 2147483647;
+    text-align: center;
+
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #141414; /* Màu nền đặc trưng Netflix */
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+    color: white;
+    min-height: min-content;
+}
+
+/* #lang-popup h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: #aaa;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+} */
+
+/* Tiêu đề */
+.popup-header {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    color: #e50914; /* Màu đỏ thương hiệu */
+}
+
+/* Label */
+.popup-body {
+    background-color: #141414; /* Màu nền đặc trưng Netflix */
+}
+.popup-body label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    /* color: #808080; */
+    margin-bottom: 8px;
+    padding: 8px 0 0 0;
+}
+
+/* Tùy chỉnh Select Box */
+#lang-select {
+    width: 100%;
+    background-color: #2f2f2f;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    appearance: none; /* Xóa style mặc định của trình duyệt */
+}
+
+#lang-select:focus {
+    border-color: #e50914;
+}
+
+/* Bao quanh select để làm mũi tên custom nếu muốn */
+.select-wrapper {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+/* Nút bấm Áp dụng */
+#apply-lang-btn {
+    width: 100%;
+    background-color: #e50914;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+#apply-lang-btn:hover {
+    background-color: #f6121d;
+}
+
+#apply-lang-btn:active {
+    transform: scale(0.98);
+}
