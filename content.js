@@ -240,11 +240,14 @@ function makeElementDraggable(elmnt) {
 
         e = e || window.event;
         e.preventDefault();
+        elmnt.dataset.dragging = 'true';
+        elmnt.style.display = 'block';
         pos3 = e.clientX;
         pos4 = e.clientY;
         document.onmouseup = () => {
             document.onmouseup = null;
             document.onmousemove = null;
+            delete elmnt.dataset.dragging;
             saveSubtitleConfig(elmnt); // Lưu sau khi thả chuột
         };
         document.onmousemove = (e) => {
@@ -310,6 +313,9 @@ function updateSubtitles() {
 
     if (currentSub) {
         subtitleElement.innerText = currentSub.text;
+    }
+
+    if (currentSub || subtitleElement.dataset.dragging === 'true') {
         subtitleElement.style.display = 'block';
     } else {
         subtitleElement.style.display = 'none';
