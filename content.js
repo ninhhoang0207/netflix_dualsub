@@ -97,7 +97,6 @@ function positionSettingsPopup(settingsBtn, langPopup) {
     langPopup.style.right = 'auto';
 }
 
-var clickedOutsideEventLoaded = false; // Fix bug: multiple event listeners for click outside popup
 function initExtensionUI() {
     // 1. Find container của Netflix
     const videoContainer = document.querySelector('.watch-video');
@@ -157,14 +156,16 @@ function initExtensionUI() {
             }
         };
 
-        if (!clickedOutsideEventLoaded) {
-            document.addEventListener('click', (e) => {
-                if (!langPopup.contains(e.target) && langPopup !== e.target) {
-                    closeSubtitleUI();
-                }
-            });
-            clickedOutsideEventLoaded = true;
-        }
+        document.addEventListener('click', (e) => {
+            const currentPopup = document.getElementById('lang-popup');
+            const currentSettingsButton = document.getElementById('netflix-sub-settings-btn');
+            const clickedInsidePopup = currentPopup && currentPopup.contains(e.target);
+            const clickedSettingsButton = currentSettingsButton && currentSettingsButton.contains(e.target);
+
+            if (!clickedInsidePopup && !clickedSettingsButton) {
+                closeSubtitleUI();
+            }
+        });
 
         // Close popup when click out
         const toggleBtn = document.getElementById('toggle-sub-visibility');
