@@ -97,9 +97,7 @@ function positionSettingsPopup(settingsBtn, langPopup) {
     langPopup.style.right = 'auto';
 }
 
-// Khởi tạo UI khi nội dung được tải
-// initExtensionUI();
-
+var clickedOutsideEventLoaded = false; // Fix bug: multiple event listeners for click outside popup
 function initExtensionUI() {
     // 1. Find container của Netflix
     const videoContainer = document.querySelector('.watch-video');
@@ -114,7 +112,7 @@ function initExtensionUI() {
         settingsBtn.innerHTML = '⚙️';
         videoContainer.appendChild(settingsBtn);
 
-        // Thiết lập ẩn/hiện nút settings khi kéo chuột
+        // show/hide and drag settings button
         setupSettingsButtonDragVisibility(settingsBtn);
         makeSettingsButtonDraggable(settingsBtn);
 
@@ -133,7 +131,7 @@ function initExtensionUI() {
                 <label for="lang-select">Language</label>
                 <div class="select-wrapper">
                     <select id="lang-select">
-                        <option value="" disabled>-- Select --</option>
+                        <option value="">-- Select --</option>
                     </select>
                 </div>
                 <button id="apply-lang-btn">
@@ -143,7 +141,7 @@ function initExtensionUI() {
         `;
         videoContainer.appendChild(langPopup);
 
-        // Sự kiện đóng/mở popup
+        // show/hide popup
         settingsBtn.onclick = (e) => {
             e.stopPropagation();
             if (settingsBtn.dataset.dragged === 'true') {
@@ -159,26 +157,27 @@ function initExtensionUI() {
             }
         };
 
-        document.addEventListener('click', (e) => {
-            if (!langPopup.contains(e.target) && !settingsBtn.contains(e.target)) {
-                closeSubtitleUI();
-            }
-        });
+        if (clickedOutsideEventLoaded) {
+            document.addEventListener('click', (e) => {
+                if (!langPopup.contains(e.target) && langPopup !== e.target) {
+                    closeSubtitleUI();
+                }
+            });
+            clickedOutsideEventLoaded = true;
+        }
 
-        // Đóng popup khi click ra ngoài
+        // Close popup when click out
         const toggleBtn = document.getElementById('toggle-sub-visibility');
         toggleBtn.addEventListener('change', (e) => {
             if (e.target.checked) {
                 document.getElementById('lang-popup').style.display = 'none';
                 handleApplySubtitle();
             } else {
-                // console.log("Ẩn phụ đề");
                 cleanSubTitle();
                 document.getElementById('lang-popup').style.display = 'none';
             }
         });
 
-        // Xử lý khi nhấn nút Áp dụng
         const applyBtn = langPopup.querySelector('#apply-lang-btn');
         const langSelect = langPopup.querySelector('#lang-select');
 
@@ -205,14 +204,13 @@ function createSubtitleDisplay(parent) {
     container.innerText = "Phụ đề thứ 2 sẽ hiển thị ở đây...";
     parent.appendChild(container);
 
-    // Khôi phục vị trí/kích thước cũ từ storage
+    // Set position from storage
     chrome.storage.local.get(['subConfig'], (res) => {
         if (res.subConfig) {
             container.style.top = res.subConfig.top;
             container.style.left = res.subConfig.left;
             container.style.width = res.subConfig.width;
             container.style.transform = 'none';
-            // console.log("Đã khôi phục cấu hình phụ đề:", res.subConfig);
         }
     });
 
@@ -226,7 +224,6 @@ function saveSubtitleConfig(elmnt) {
         left: elmnt.style.left,
         width: elmnt.style.width,
     };
-    // console.log("Lưu cấu hình phụ đề:", config);
     chrome.storage.local.set({ subConfig: config });
 }
 
@@ -234,7 +231,7 @@ function makeElementDraggable(elmnt) {
     let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
 
     elmnt.onmousedown = (e) => {
-        // Không cho phép kéo nếu người dùng đang nhấn vào góc resize
+        // Not allow dragging when clicking on the resize corner (20px from bottom-right)
         const rect = elmnt.getBoundingClientRect();
         if (e.clientX > rect.right - 20 && e.clientY > rect.bottom - 20) return;
 
@@ -248,7 +245,7 @@ function makeElementDraggable(elmnt) {
             document.onmouseup = null;
             document.onmousemove = null;
             delete elmnt.dataset.dragging;
-            saveSubtitleConfig(elmnt); // Lưu sau khi thả chuột
+            saveSubtitleConfig(elmnt); // Save after dragging
         };
         document.onmousemove = (e) => {
             e.preventDefault();
@@ -257,17 +254,17 @@ function makeElementDraggable(elmnt) {
             pos3 = e.clientX;
             pos4 = e.clientY;
             
-            elmnt.style.transform = 'none'; // Xóa căn giữa mặc định khi bắt đầu kéo
+            elmnt.style.transform = 'none'; // Align center when dragging
             elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
             elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-            elmnt.style.bottom = 'auto'; // Quan trọng: bỏ bottom để top có hiệu lực
+            elmnt.style.bottom = 'auto'; // Important: remove bottom to apply top position
         };
     };
 }
 
 
 
-// Lắng nghe danh sách ngôn ngữ từ Background gửi về
+// Wait for message from backend to update the language list in the popup
 chrome.runtime.onMessage.addListener((msg) => {
     if (msg.type === "UPDATE_LANGUAGE_LIST") {
         const langSelect = document.getElementById('lang-select');
@@ -401,7 +398,7 @@ const updateCupturedSubTitles = (subData) => {
 
     // reset to default option
     if (langSelect) {
-        langSelect.innerHTML = '<option value="" disabled>-- Select --</option>';
+        langSelect.innerHTML = '<option value="">-- Select --</option>';
 
         capturedSubtitles.forEach(track => {
             const option = document.createElement('option');
@@ -428,6 +425,7 @@ async function handleApplySubtitle() {
 }
 
 const fetchFullSubtitle = async (url) => {
+    console.log("⏳ Fetching subtitle from Background:", url);
     try {
         chrome.runtime.sendMessage({
         type: "FETCH_SUBTITLE_RAW",
