@@ -204,7 +204,7 @@ chrome.runtime.onMessage.addListener((msg) => {
         msg.tracks.forEach(track => {
             const option = document.createElement('option');
             option.value = track.url;
-            option.innerText = track.label;
+            option.innerText = track.label.toUpperCase() || track.language.toUpperCase();
             langSelect.appendChild(option);
         });
     }
@@ -329,7 +329,7 @@ const updateCupturedSubTitles = (subData) => {
             const option = document.createElement('option');
             option.value = track.url;
             option.selected = (track.language === subData.language) ? true : false;
-            option.textContent = track.label || track.language;
+            option.textContent = track.label?.toUpperCase() || track.language?.toUpperCase();
             langSelect.appendChild(option);
         });
     }
