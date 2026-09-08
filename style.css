@@ -130,6 +130,10 @@
     user-select: none;
 }
 
+#netflix-sub-settings-btn:active {
+    cursor: grabbing;
+}
+
 #netflix-sub-settings-btn.settings-hidden {
     opacity: 0;
     pointer-events: none;
@@ -145,8 +149,9 @@
 #lang-popup {
     display: none;
     position: absolute;
-    top: 70px;
-    right: 60px;
+    top: 0;
+    left: 0;
+    right: auto;
     min-width: 250px;
     z-index: 2147483647;
     text-align: center;

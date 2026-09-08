@@ -37,6 +37,66 @@ function setupSettingsButtonDragVisibility(settingsBtn) {
     }, true);
 }
 
+function makeSettingsButtonDraggable(settingsBtn) {
+    let startX = 0;
+    let startY = 0;
+    let startLeft = 0;
+    let startTop = 0;
+    let hasMoved = false;
+
+    chrome.storage.local.get(['settingsBtnConfig'], (res) => {
+        if (!res.settingsBtnConfig) return;
+        settingsBtn.style.top = res.settingsBtnConfig.top;
+        settingsBtn.style.left = res.settingsBtnConfig.left;
+        settingsBtn.style.right = 'auto';
+    });
+
+    settingsBtn.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+
+        const rect = settingsBtn.getBoundingClientRect();
+        const containerRect = settingsBtn.parentElement.getBoundingClientRect();
+        startX = e.clientX;
+        startY = e.clientY;
+        startLeft = rect.left - containerRect.left;
+        startTop = rect.top - containerRect.top;
+        hasMoved = false;
+
+        const handleMouseMove = (moveEvent) => {
+            const deltaX = moveEvent.clientX - startX;
+            const deltaY = moveEvent.clientY - startY;
+            if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) hasMoved = true;
+
+            settingsBtn.style.left = `${startLeft + deltaX}px`;
+            settingsBtn.style.top = `${startTop + deltaY}px`;
+            settingsBtn.style.right = 'auto';
+        };
+
+        const handleMouseUp = () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+            if (hasMoved) {
+                chrome.storage.local.set({
+                    settingsBtnConfig: {
+                        top: settingsBtn.style.top,
+                        left: settingsBtn.style.left,
+                    },
+                });
+                settingsBtn.dataset.dragged = 'true';
+            }
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+    });
+}
+
+function positionSettingsPopup(settingsBtn, langPopup) {
+    langPopup.style.left = `${settingsBtn.offsetLeft - (langPopup.offsetWidth - settingsBtn.offsetWidth) / 2}px`;
+    langPopup.style.top = `${settingsBtn.offsetTop - (langPopup.offsetHeight - settingsBtn.offsetHeight) / 2}px`;
+    langPopup.style.right = 'auto';
+}
+
 // Khởi tạo UI khi nội dung được tải
 // initExtensionUI();
 
@@ -56,6 +116,7 @@ function initExtensionUI() {
 
         // Thiết lập ẩn/hiện nút settings khi kéo chuột
         setupSettingsButtonDragVisibility(settingsBtn);
+        makeSettingsButtonDraggable(settingsBtn);
 
         // Create Popup for Settings
         const langPopup = document.createElement('div');
@@ -85,13 +146,24 @@ function initExtensionUI() {
         // Sự kiện đóng/mở popup
         settingsBtn.onclick = (e) => {
             e.stopPropagation();
+            if (settingsBtn.dataset.dragged === 'true') {
+                delete settingsBtn.dataset.dragged;
+                return;
+            }
             const isHidden = langPopup.style.display === 'none' || langPopup.style.display === '';
             if (isHidden) {
                 openSubtitleUI();
+                positionSettingsPopup(settingsBtn, langPopup);
             } else {
                 closeSubtitleUI();
             }
         };
+
+        document.addEventListener('click', (e) => {
+            if (!langPopup.contains(e.target) && !settingsBtn.contains(e.target)) {
+                closeSubtitleUI();
+            }
+        });
 
         // Đóng popup khi click ra ngoài
         const toggleBtn = document.getElementById('toggle-sub-visibility');
