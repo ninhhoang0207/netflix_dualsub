@@ -20,38 +20,43 @@ const cleanSubTitle = () => {
 // initExtensionUI();
 
 function initExtensionUI() {
-    // 1. Tìm container của Netflix
-    const videoContainer = document.querySelector('.watch-video') || document.body;
+    // 1. Find container của Netflix
+    const videoContainer = document.querySelector('.watch-video');
+    if (!videoContainer) {
+        // console.log("Video container found:", videoContainer);
+        console.log("Không tìm thấy container video. Vui lòng thử lại sau khi trang đã tải xong.");
+        return;
+    }
+    // const videoContainer = document.getElementsByTagName('video')[0];
+    console.log("Video container found:", videoContainer);
 
-    // 2. Tạo nút Settings cố định (nếu chưa có)
-    console.log("Khởi tạo UI phụ đề, videoContainer:", videoContainer);
+    // 2. Generate Settings button 
     if (!document.getElementById('netflix-sub-settings-btn')) {
-        console.log("Tạo nút Settings cho phụ đề...");
         const settingsBtn = document.createElement('div');
         settingsBtn.id = 'netflix-sub-settings-btn';
         settingsBtn.innerHTML = '⚙️';
         videoContainer.appendChild(settingsBtn);
 
-        // Tạo Popup đi kèm nút Settings
+        // Create Popup for Settings
         const langPopup = document.createElement('div');
         langPopup.id = 'lang-popup';
         langPopup.innerHTML = `
             <div class="popup-header">
-                <span>🛠️ Cấu hình </span>
+                <span>🛠️ Setting </span>
             </div>
             <div class="popup-body">
             <div style="display: flex; align-items: center; margin-top: 10px;">
                 <input type="checkbox" id="toggle-sub-visibility" checked style="margin-right: 8px;">
-                <label for="toggle-sub-visibility" style="font-size: 12px; color: #ccc;">Hiển thị phụ đề</label>
+                <label for="toggle-sub-visibility" style="font-size: 12px; color: #ccc;">Display Subtitles</label>
             </div>
-                <label for="lang-select">Ngôn ngữ</label>
+                <label for="lang-select">Language</label>
                 <div class="select-wrapper">
                     <select id="lang-select">
-                        <option value="">-- Chọn --</option>
+                        <option value="" disabled>-- Select --</option>
                     </select>
                 </div>
                 <button id="apply-lang-btn">
-                    <span>Áp dụng</span>
+                    <span>Apply</span>
                 </button>
             </div>
         `;
@@ -75,7 +80,7 @@ function initExtensionUI() {
                 document.getElementById('lang-popup').style.display = 'none';
                 handleApplySubtitle();
             } else {
-                console.log("Ẩn phụ đề");
+                // console.log("Ẩn phụ đề");
                 cleanSubTitle();
                 document.getElementById('lang-popup').style.display = 'none';
             }
@@ -95,12 +100,11 @@ function initExtensionUI() {
         };
     }
 
-    // 3. Tạo khung hiển thị phụ đề (Vẫn giữ tính năng kéo thả)
     createSubtitleDisplay(videoContainer);
 }
 
 function createSubtitleDisplay(parent) {
-    if (document.getElementById('subtitle-container')) { // Nếu đã tồn tại, không tạo lại
+    if (document.getElementById('subtitle-container')) { // Do note create if already exists
         return;
     } 
 
@@ -116,7 +120,7 @@ function createSubtitleDisplay(parent) {
             container.style.left = res.subConfig.left;
             container.style.width = res.subConfig.width;
             container.style.transform = 'none';
-            console.log("Đã khôi phục cấu hình phụ đề:", res.subConfig);
+            // console.log("Đã khôi phục cấu hình phụ đề:", res.subConfig);
         }
     });
 
@@ -130,7 +134,7 @@ function saveSubtitleConfig(elmnt) {
         left: elmnt.style.left,
         width: elmnt.style.width,
     };
-    console.log("Lưu cấu hình phụ đề:", config);
+    // console.log("Lưu cấu hình phụ đề:", config);
     chrome.storage.local.set({ subConfig: config });
 }
 
@@ -176,7 +180,7 @@ chrome.runtime.onMessage.addListener((msg) => {
         if (!langSelect) return;
         console.log("Lang list received:", langSelect, msg.tracks);
 
-        langSelect.innerHTML = '<option value="">-- Chọn ngôn ngữ --</option>'; 
+        langSelect.innerHTML = '<option value="">-- Select Language --</option>'; 
         
         msg.tracks.forEach(track => {
             const option = document.createElement('option');
@@ -192,7 +196,8 @@ var mockSubtitles = [];
 var movieID = null;
 function updateSubtitles() {
     if (!document.getElementById('subtitle-container')) { // Fix bug exit movie and change to the another
-        const watchVideoContainer = document.querySelector('.watch-video') || document.body;
+        const watchVideoContainer = document.querySelector('.watch-video');
+        if (!watchVideoContainer) return;
         createSubtitleDisplay(watchVideoContainer);
     };
 
@@ -275,6 +280,7 @@ var currentMovieId = null;
 const capturedSubtitles = [];
 // SubData structure example: {language: "en", url: "https://..., movieId: "12345"}
 const updateCupturedSubTitles = (subData) => {
+    // console.log("Previous MovieID:", currentMovieId, "New MovieID:", subData);
     if (currentMovieId && currentMovieId !== subData.movieId) {
         // Reset subtitle If movieId changed
         capturedSubtitles.length = 0;
@@ -283,7 +289,7 @@ const updateCupturedSubTitles = (subData) => {
     currentMovieId = subData.movieId;
 
     if (!currentMovieId || currentMovieId === "undefined") {
-        console.log("Movie ID không hợp lệ:", currentMovieId);
+        console.log("It's Homepage:", currentMovieId);
         return;
     }
 
@@ -293,20 +299,21 @@ const updateCupturedSubTitles = (subData) => {
     const langSelect = document.getElementById('lang-select');
     if (!langSelect) {
         initExtensionUI(); // Khởi tạo UI nếu chưa có
-        console.log("Không tìm thấy thẻ chọn ngôn ngữ.");
-        return;
+        console.log("Cannot find language selection element. UI has been re-initialized.");
     };
 
-    // Giữ lại option mặc định
-    langSelect.innerHTML = '<option value="">-- Chọn --</option>';
+    // reset to default option
+    if (langSelect) {
+        langSelect.innerHTML = '<option value="" disabled>-- Select --</option>';
 
-    capturedSubtitles.forEach(track => {
-        const option = document.createElement('option');
-        option.value = track.url;
-        option.selected = (track.language === subData.language) ? true : false;
-        option.textContent = track.label || track.language;
-        langSelect.appendChild(option);
-    });
+        capturedSubtitles.forEach(track => {
+            const option = document.createElement('option');
+            option.value = track.url;
+            option.selected = (track.language === subData.language) ? true : false;
+            option.textContent = track.label || track.language;
+            langSelect.appendChild(option);
+        });
+    }
 }
 
 async function handleApplySubtitle() {
@@ -319,8 +326,7 @@ async function handleApplySubtitle() {
         return;
     };
 
-    console.log("⏳ Đang nhờ Background fetch dữ liệu...", selectedUrl);
-    // Gửi yêu cầu lên background
+    // console.log("⏳ Require Background fetch data...", selectedUrl);
     fetchFullSubtitle(selectedUrl);
 }
 
@@ -330,9 +336,7 @@ const fetchFullSubtitle = async (url) => {
         type: "FETCH_SUBTITLE_RAW",
         url: url
     }, (response) => {
-        // console.log("Đã nhận phản hồi từ Background:", response);
         if (response) {
-            // console.log("✅ Đã nhận được nội dung phụ đề từ Background");
             document.getElementById('lang-popup').style.display = 'none';
         } else {
             alert("Lỗi khi tải phụ đề: " + response.error);
@@ -342,16 +346,3 @@ const fetchFullSubtitle = async (url) => {
         console.error("Lỗi khi fetch phụ đề:", error);
     }
 }
-
-// Gán sự kiện cho nút Áp dụng trong Popup
-// const toggleBtn = document.getElementById('toggle-sub-visibility');
-
-// toggleBtn.addEventListener('change', (e) => {
-//     if (e.target.checked) {
-//         console.log("Hiển thị phụ đề");
-//         handleApplySubtitle();
-//     } else {
-//         console.log("Ẩn phụ đề");
-//         cleanSubTitle();
-//     }
-// });

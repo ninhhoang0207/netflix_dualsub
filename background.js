@@ -12,13 +12,14 @@ chrome.webRequest.onBeforeRequest.addListener(
         const currentUrl = details.url;
          if (currentUrl.includes("/metadata?") && details.type === "xmlhttprequest") {
             if (metaDataUrl === currentUrl) return;
-            console.log("Đang tải metadata:", currentUrl);
+            // console.log("Đang tải metadata:", currentUrl);
             metaDataUrl = currentUrl;
             if (details.tabId !== -1) { // Kiểm tra nếu tabId hợp lệ
                 await fetchMetadata(currentUrl, details.tabId);
             }
         }
 
+        // filter URL and get subtitle url content
         if (currentUrl.includes("/?o=") && details.type === "xmlhttprequest") {
             if (subTitleLoaded) return;
             if (details.tabId !== -1) { // Kiểm tra nếu tabId hợp lệ
@@ -65,7 +66,7 @@ async function fetchMetadata(url, tabId) {
 
         isFetchedMetadata = true;
         movieID = (jsonData && jsonData.video) ? (jsonData.video.currentEpisode ? jsonData.video.currentEpisode : jsonData.video.id) : null; // Lưu movieId từ metadata
-        console.log("Metadata đã được tải:", {"currentEpisode": jsonData.video.currentEpisode, "MovieID": jsonData.video.id});
+        // console.log("Metadata đã được tải:", {"currentEpisode": jsonData.video.currentEpisode, "MovieID": jsonData.video.id});
 
     } catch (error) {
         console.error("Lỗi khi tải metadata:", error);
@@ -78,7 +79,8 @@ async function fetchSubtitleContent(url, tabId) {
         const xmlText = await response.text();
 
         subTitleLoaded = isFullSubTitleData(xmlText.toString());
-        console.log("Phụ đề đã được tải:", subTitleLoaded, "MovieID:", movieID);
+        // console.log("Phụ đề đã được tải:", subTitleLoaded);
+        // console.log("MovieID:", movieID);
         if (subTitleLoaded) {
             chrome.tabs.sendMessage(tabId, {
                     type: "SUBTITLE_RAW_XML",
@@ -86,8 +88,6 @@ async function fetchSubtitleContent(url, tabId) {
                     meta_data: { url: url, movieId: movieID, language: currentLanguageFromXML(xmlText) }
             });
         }
-        // const movieId = movieIdFromXML(xmlText);
-        // const currentLang = currentLanguageFromXML(xmlText);
 
         return true;
         
