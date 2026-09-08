@@ -16,6 +16,27 @@ const cleanSubTitle = () => {
     mockSubtitles = []
 }
 
+function setupSettingsButtonDragVisibility(settingsBtn) {
+    const showSettingsButton = () => {
+        clearTimeout(settingsBtn.settingsHideTimer);
+        settingsBtn.classList.remove('settings-hidden');
+        settingsBtn.settingsHideTimer = setTimeout(() => {
+            settingsBtn.classList.add('settings-hidden');
+        }, 2000);
+    };
+
+    settingsBtn.classList.add('settings-hidden');
+
+    window.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        showSettingsButton();
+    }, true);
+
+    window.addEventListener('mousemove', (e) => {
+        showSettingsButton();
+    }, true);
+}
+
 // Khởi tạo UI khi nội dung được tải
 // initExtensionUI();
 
@@ -23,12 +44,8 @@ function initExtensionUI() {
     // 1. Find container của Netflix
     const videoContainer = document.querySelector('.watch-video');
     if (!videoContainer) {
-        // console.log("Video container found:", videoContainer);
-        console.log("Không tìm thấy container video. Vui lòng thử lại sau khi trang đã tải xong.");
         return;
     }
-    // const videoContainer = document.getElementsByTagName('video')[0];
-    console.log("Video container found:", videoContainer);
 
     // 2. Generate Settings button 
     if (!document.getElementById('netflix-sub-settings-btn')) {
@@ -36,6 +53,9 @@ function initExtensionUI() {
         settingsBtn.id = 'netflix-sub-settings-btn';
         settingsBtn.innerHTML = '⚙️';
         videoContainer.appendChild(settingsBtn);
+
+        // Thiết lập ẩn/hiện nút settings khi kéo chuột
+        setupSettingsButtonDragVisibility(settingsBtn);
 
         // Create Popup for Settings
         const langPopup = document.createElement('div');
@@ -147,7 +167,6 @@ function makeElementDraggable(elmnt) {
         if (e.clientX > rect.right - 20 && e.clientY > rect.bottom - 20) return;
 
         e = e || window.event;
-
         e.preventDefault();
         pos3 = e.clientX;
         pos4 = e.clientY;
@@ -178,7 +197,7 @@ chrome.runtime.onMessage.addListener((msg) => {
     if (msg.type === "UPDATE_LANGUAGE_LIST") {
         const langSelect = document.getElementById('lang-select');
         if (!langSelect) return;
-        console.log("Lang list received:", langSelect, msg.tracks);
+        // console.log("Lang list received:", langSelect, msg.tracks);
 
         langSelect.innerHTML = '<option value="">-- Select Language --</option>'; 
         
@@ -289,7 +308,7 @@ const updateCupturedSubTitles = (subData) => {
     currentMovieId = subData.movieId;
 
     if (!currentMovieId || currentMovieId === "undefined") {
-        console.log("It's Homepage:", currentMovieId);
+        // console.log("It's Homepage:", currentMovieId);
         return;
     }
 
