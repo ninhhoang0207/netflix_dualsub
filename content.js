@@ -157,7 +157,7 @@ function initExtensionUI() {
             }
         };
 
-        if (clickedOutsideEventLoaded) {
+        if (!clickedOutsideEventLoaded) {
             document.addEventListener('click', (e) => {
                 if (!langPopup.contains(e.target) && langPopup !== e.target) {
                     closeSubtitleUI();
@@ -183,6 +183,10 @@ function initExtensionUI() {
 
         applyBtn.onclick = () => {
             const selectedUrl = langSelect.value;
+            if (!selectedUrl) {
+                cleanSubTitle();
+            }
+
             if (selectedUrl) {
                 fetchFullSubtitle(selectedUrl);
             }
@@ -383,7 +387,6 @@ const updateCupturedSubTitles = (subData) => {
     currentMovieId = subData.movieId;
 
     if (!currentMovieId || currentMovieId === "undefined") {
-        // console.log("It's Homepage:", currentMovieId);
         return;
     }
 
@@ -410,22 +413,19 @@ const updateCupturedSubTitles = (subData) => {
     }
 }
 
-async function handleApplySubtitle() {
+async function handleApplySubtitle() { // This funciton maybe not used, but just keep it to avoud breaking change
     const langSelect = document.getElementById('lang-select');
     const selectedUrl = langSelect.value;
-    // console.log("Ngôn ngữ được chọn:", [langSelect.value, selectedUrl]);
     if (!selectedUrl) {
         document.getElementById('lang-popup').style.display = 'none';
         cleanSubTitle();
         return;
     };
 
-    // console.log("⏳ Require Background fetch data...", selectedUrl);
     fetchFullSubtitle(selectedUrl);
 }
 
 const fetchFullSubtitle = async (url) => {
-    console.log("⏳ Fetching subtitle from Background:", url);
     try {
         chrome.runtime.sendMessage({
         type: "FETCH_SUBTITLE_RAW",
